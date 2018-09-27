@@ -1,0 +1,34 @@
+version: "3.3"
+
+services:
+  # traefik to implement TLS and manage certificates
+  traefik:
+    # need to modify image for traefik.toml
+    image: traefik:1.6-alpine
+    hostname: traefik
+    networks:
+      - default
+      - pre-auth
+    ports: 
+      - "8080:8080"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - "--docker.domain=$TRAEFIK_DOMAIN"
+      - "--acme.email=$ACME_EMAIL"
+      - "--entrypoints=Auth.Basic.Users:admin:$TRAEFIK_PASSWD"
+    deploy:
+      replicas: 1
+    configs:
+      - traefik
+
+networks:
+  pre-auth:
+    external: false
+    
+configs:
+  traefik:
+    file: ./dms/traefik.toml
+

@@ -1,0 +1,22 @@
+#!/bin/bash 
+
+img=${2:-"\
+https://www.googleapis.com/compute/v1/projects/\
+ubuntu-os-cloud/global/images/ubuntu-minimal-1804-bionic-v20180814\
+"}
+
+docker-machine create \
+	--driver google \
+	--google-project doc-holliday \
+	--google-address doc \
+	--google-machine-image $img \
+	--google-zone europe-west3-b \
+	${1:-doc} 2> /tmp/mkdoc_error
+
+if [ $? ] && grep "There was an error validating certificates for host" \
+	< /tmp/mkdoc_error
+then
+	echo trying to regenerate certs...
+	docker-machine regenerate-certs ${1:-doc} --force
+	if [ $? ] ; then echo success. ; fi
+fi
